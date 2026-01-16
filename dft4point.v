@@ -17,6 +17,33 @@ always @(*) begin
   cosVal[3] = 16'sd0; sinVal[3] = -16'sd32767;
 end
 
+always @(posedge clk or posedge reset) begin
+  if (reset) begin
+    done <= 1'b0;
+    k<=0;
+    n<=0;
+    tempR <= 32'sd0;
+    tempI <= 32'sd0;
+  end
+  else if (start) begin
+    x[0] <= x0;
+    x[1] <= x1;
+    x[2] <= x2;
+    x[3] <= x3;
 
-
+    tempR <= 32'sd0;
+    tempI <= 32'sd0;
+    for (k = 0; k < 4; k = k + 1) begin
+      tempR = 32'sd0;
+      tempI = 32'sd0;
+      for (n = 0; n < 4; n = n + 1) begin
+        tempR = tempR + (x[n] * cosVal[(k*n)%4]);
+        tempI = tempI - (x[n] * sinVal[(k*n)%4]);
+      end
+      Xr[k] <= tempR >>> 15; // Scaling down to fit in 16 bits
+      Xi[k] <= tempI >>> 15; // Scaling down to fit in 16 bits
+    end
+    done <= 1'b1;
+  end
+end
 endmodule
